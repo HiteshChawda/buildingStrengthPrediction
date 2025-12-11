@@ -5,10 +5,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import LabelEncoder
 
-# ----------------------------------------------
-# LOAD & TRAIN MODEL
-# ----------------------------------------------
-df = pd.read_csv("building_strength_dataset.csv")
+
+df = pd.read_csv("new_dataset.csv")
 
 target = ["Strength", "Durability"]
 
@@ -31,27 +29,30 @@ X_train, X_test, y_train, y_test = train_test_split(
 model = RandomForestRegressor(n_estimators=300, random_state=42)
 model.fit(X_train, y_train)
 
-# ----------------------------------------------
-# STREAMLIT UI
-# ----------------------------------------------
+st.set_page_config(page_title="Building Strength & Durability Predictor", layout="wide")
+
 st.title("Building Strength & Durability Predictor")
 st.write("Enter building details to predict *Strength*, *Durability*, and *Safety Rating*.")
 
-# ----------------------------------------------
-# USER INPUT FIELDS
-# ----------------------------------------------
+
 Material_Quality = st.slider("Material Quality (1-10)", 1, 10, 7)
-Concrete_Grade = st.selectbox("Concrete Grade", ["M20", "M30", "M40"])
-Steel_Grade = st.selectbox("Steel Grade", ["Fe415", "Fe500"])
-Age_of_Building = st.number_input("Age of Building (years)", 0, 200, 20)
-No_of_Floors = st.number_input("Number of Floors", 1, 50, 3)
-Foundation_Depth = st.number_input("Foundation Depth (3–20 ft)", 1.0, 30.0, 10.0)
-Soil_Type = st.selectbox("Soil Type", ["Sandy", "Clay", "Loam", "Rocky"])
-Seismic_Zone = st.selectbox("Seismic Zone", ["I", "II", "III", "IV", "V"])
-Moisture_Exposure = st.selectbox("Moisture Exposure", ["Low", "Medium", "High"])
+
+c1, c2, c3 = st.columns(3)
+Concrete_Grade = c1.selectbox("Concrete Grade", ["M20", "M30", "M40"])
+Steel_Grade = c2.selectbox("Steel Grade", ["Fe415", "Fe500"])
+Age_of_Building = c3.number_input("Age of Building (years)", 0, 200, 20)
+
+c4, c5 = st.columns(2)
+No_of_Floors = c4.number_input("Number of Floors", 1, 50, 3)
+Foundation_Depth = c5.number_input("Foundation Depth (3–20 ft)", 1.0, 30.0, 10.0)
+
+c6, c7, c8 = st.columns(3)
+Soil_Type = c6.selectbox("Soil Type", ["Sandy", "Clay", "Loam", "Rocky"])
+Seismic_Zone = c7.selectbox("Seismic Zone", ["I", "II", "III", "IV", "V"])
+Moisture_Exposure = c8.selectbox("Moisture Exposure", ["Low", "Medium", "High"])
 Maintenance_Frequency = st.slider("Maintenance Frequency (per year)", 0, 5, 1)
 
-# Prepare user input as DataFrame
+
 user_data = {
     "Material_Quality": Material_Quality,
     "Concrete_Grade": Concrete_Grade,
@@ -67,7 +68,7 @@ user_data = {
 
 user_df = pd.DataFrame([user_data])
 
-# Encode user input
+
 for col in user_df.columns:
     if col in label_encoders:
         le = label_encoders[col]
@@ -75,9 +76,7 @@ for col in user_df.columns:
 
 user_df = user_df[train_feature_names]
 
-# ----------------------------------------------
-# PREDICTION BUTTON
-# ----------------------------------------------
+
 if st.button("Predict Strength & Durability"):
 
     prediction = model.predict(user_df)
@@ -88,9 +87,6 @@ if st.button("Predict Strength & Durability"):
     st.write(f"**Predicted Strength:** {strength_pred:.2f}")
     st.write(f"**Predicted Durability:** {durability_pred:.2f}")
 
-    # ------------------------------------------
-    # CLASSIFICATION FUNCTIONS
-    # ------------------------------------------
     def classify_strength(value):
         if value > 110:
             return "Very High Strength"
