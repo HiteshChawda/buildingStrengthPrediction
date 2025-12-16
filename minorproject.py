@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
@@ -26,19 +27,40 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.30, random_state=42
 )
 
-model = RandomForestRegressor(n_estimators=300, random_state=42)
-model.fit(X_train, y_train)
+@st.cache_resource
+def train_model(X_train, y_train):
+    model = RandomForestRegressor(
+        n_estimators=300,
+        random_state=42,
+        n_jobs=-1
+    )
+    model.fit(X_train, y_train)
+    return model
+
+model = train_model(X_train, y_train)
+
+
+y_pred = model.predict(X_test)
+
+r2 = r2_score(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
 
 st.set_page_config(page_title="Building Strength & Durability Predictor", layout="wide")
 
 st.title("Building Strength & Durability Predictor")
 st.write("Enter building details to predict *Strength*, *Durability*, and *Safety Rating*.")
 
+st.subheader("Model Performance")
+st.metric("R² Score", f"{r2:.3f}")
+st.metric("RMSE", f"{rmse:.2f}")
+st.subheader("-------------------------------------------------------------------------------------------------------------------------------------------------------")
+
 
 Material_Quality = st.slider("Material Quality (1-10)", 1, 10, 7)
 
 c1, c2, c3 = st.columns(3)
-Concrete_Grade = c1.selectbox("Concrete Grade", ["M20", "M30", "M40"])
+Concrete_Grade = c1.selectbox("Concrete Grade", ["M20", "M30","M40"])
 Steel_Grade = c2.selectbox("Steel Grade", ["Fe415", "Fe500"])
 Age_of_Building = c3.number_input("Age of Building (years)", 0, 200, 20)
 
